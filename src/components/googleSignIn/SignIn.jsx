@@ -1,47 +1,72 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { auth, provider } from '../../firebase';
-import { signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { FaGoogle, FaComments, FaSignOutAlt } from 'react-icons/fa';
 
 function SignIn() {
-    const [user, setUser] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [user, setUser] = useState(localStorage.getItem('email') || null);
+    const [avatar, setAvatar] = useState(localStorage.getItem('avatar') || '');
     const navigate = useNavigate();
 
+    const handleClick = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const email = result.user.email;
+            const photoURL = result.user.photoURL;
+
+            localStorage.setItem('email', email);
+            localStorage.setItem('avatar', photoURL);
+
+            setUser(email);
+            setAvatar(photoURL);
+        } catch (error) {
+            console.error('Login failed:', error.message);
+        }
+    };
+
+    const clearAllCookies = () => {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const eqPos = cookie.indexOf('=');
+            const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        }
+    };
+
     const logout = () => {
-        localStorage.clear();
         signOut(auth)
             .then(() => {
-                setUser('');
+                localStorage.clear();
+                clearAllCookies();
+                setUser(null);
                 setAvatar('');
             })
             .catch((error) => {
-                console.log('Error signing out: ', error.message);
-            });
-    };
-
-    const handleClick = () => {
-        signInWithPopup(auth, provider)
-            .then((data) => {
-                const userEmail = data.user.email;
-                const userAvatar = data.user.photoURL;
-                setUser(userEmail);
-                setAvatar(userAvatar);
-                localStorage.setItem('email', userEmail);
-                localStorage.setItem('avatar', userAvatar);
-                navigate('/');
-            })
-            .catch((error) => {
-                console.log(error.message);
+                console.log('Error signing out:', error.message);
             });
     };
 
     useEffect(() => {
-        const savedUser = localStorage.getItem('email');
-        const savedAvatar = localStorage.getItem('avatar');
-        if (savedUser) setUser(savedUser);
-        if (savedAvatar) setAvatar(savedAvatar);
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                const email = currentUser.email;
+                const photoURL = currentUser.photoURL;
+
+                localStorage.setItem('email', email);
+                localStorage.setItem('avatar', photoURL);
+
+                setUser(email);
+                setAvatar(photoURL);
+            } else {
+                localStorage.removeItem('email');
+                localStorage.removeItem('avatar');
+                setUser(null);
+                setAvatar('');
+            }
+        });
+
+        return () => unsubscribe();
     }, []);
 
     return (
