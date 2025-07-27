@@ -6,7 +6,7 @@ function Sidebar({ conversationIdInput, setConversationIdInput, handleJoinConver
     return (
         <aside className="w-full md:w-80 bg-white border-r p-4 overflow-y-auto shadow-md">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-700">📚 Phòng Chat</h2>
+                <h2 className="text-xl font-bold text-gray-700">Phòng Chat</h2>
                 <button
                     onClick={handleCreateConversation}
                     className="bg-blue-600 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-700 transition"

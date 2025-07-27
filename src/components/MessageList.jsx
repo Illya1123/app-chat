@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import LoadingRoomPrompt from './LoadingRoomPrompt';
 
 // Hàm kiểm tra link YouTube và trích xuất video ID
 const getYouTubeVideoId = (url) => {
@@ -9,11 +10,7 @@ const getYouTubeVideoId = (url) => {
 
 function MessageList({ messages, selectedRoom, user, handleDeleteMessage }) {
     if (!selectedRoom) {
-        return (
-            <div className="flex items-center justify-center h-full text-gray-400 text-xl">
-                🔍 Vui lòng nhập mã phòng để bắt đầu
-            </div>
-        );
+        return <LoadingRoomPrompt />;
     }
 
     const renderContentWithLinks = (text) => {
